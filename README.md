@@ -18,9 +18,13 @@
 ##### scripts/users_from_database.py
 
 - run the script: 
-  python3 scripts/users_from_database.py "31940" "6769ae72996e05a36ac38d546871dd63982b2651"
+```
+  python3 scripts/users_from_database.py "strava_client_id" "strava_client_secret"
 
-- Sample output
+```
+Sample output
+
+```
   Search For New Activities
   athlete id: 1778778
   activity name: Lunch Run
@@ -29,3 +33,4 @@
   moving time: 1909
   elapsed time: 1917
   activity id: 2410588125  
+```
