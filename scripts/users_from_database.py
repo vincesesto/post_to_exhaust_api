@@ -3,51 +3,42 @@ import csv
 import requests
 import json
 import sys
+import stravalib
 
 # Extracting users from CSV for time being
-#userdb="/Users/vincesesto/NewStrava/users1.csv"
-userdb="scripts/users1.csv"
-api_token=sys.argv[1]
-api_url_base='https://www.strava.com'
+userdb="/Users/vincesesto/NewStrava/users1.csv"
+#userdb="scripts/users1.csv"
+client_id=sys.argv[1]
+api_token=sys.argv[2]
+api_url_base='https://www.strava.com/api/v3/athlete/activities'
 
-def get_userdata_from_db():
-	with open(userdb) as csvfile:
-		reader = csv.DictReader(csvfile)
-		for row in reader:
-			name=row['name']
-			id=row['strava_id']
-			user_key=row['strava_users_key']
-			activity_bearer=row['latest_bearer']
-			print(name, id, user_key, activity_bearer)
+#################TO DO########################
+# 1. Verify the api_token is added as a command line arguement
+# 2. Try catch for all statements
+# 3. Logging
+# 4. Security
 
 
-def update_activity_bearer(user_id):
-	# Function accepts the strava id
-	print("Obtaining New Activity Bearer")
-	import stravalib
-	client = stravalib.client.Client()
-	access_token = client.exchange_code_for_token(client_id=31940,client_secret='6769ae72996e05a36ac38d546871dd63982b2651',code='f53de2ed2a5d40b3814f4927c315b8dd19e12df5')
-	print(access_token)
-	client.access_token = access_token
-	athlete = client.get_athlete()
-	client.access_token = access_token['access_token']
-	athlete = client.get_athlete()
-	athlete
+# Go through the users in the database
+# Get a user from the database
+	# Get the users strava_users_key latest_bearer
+# Update their latest_bearer for the user so you can check more activity
+	# Update this in the database
+# Search through users activity
+	# Find activity that is tagged correctly
+	# Verify it has not been posted to steemit already 
 
-
-def change_activity_bearer_in_db(user_id, old_activity_bearer, new_activity_bearer):
-	# Function accepts strava id, old bearer and new bearer
-	# Needs to be changed to a database when we start using a database
-	print("Updating bearer token in database")
+def change_activity_bearer_in_db(old_activity_bearer, new_activity_bearer):
+	# Update this in the database
 	with open(userdb, 'r') as readFile:
 		reader = csv.reader(readFile)
 		lines = list(reader)
-	readFile.close()
-	
+		readFile.close()
+
 	for i, h in enumerate(lines):
 		for j, k in enumerate(h):
 			if k == str(old_activity_bearer):
-				print("bearer found")
+				# print("bearer found")
 				lines[i][j] = new_activity_bearer
 
 	with open('scripts/users1.csv', 'w') as writeFile:
@@ -55,17 +46,53 @@ def change_activity_bearer_in_db(user_id, old_activity_bearer, new_activity_bear
 		writer.writerows(lines)
 		writeFile.close()
 
-def check_for_new_posts():
-	print("Search For New Posts")
+def update_activity_bearer(user_key,activity_bearer):
+        # Update their latest_bearer for the user so you can check more activity
+        # Update this in the database
 
+	# print("Obtaining New Activity Bearer")
+	client = stravalib.client.Client()
+	access_token = client.exchange_code_for_token(client_id=31940,client_secret=api_token,code=user_key)
+	client.access_token = access_token
+	#print("Updating token in db from: " + activity_bearer + " " + access_token['access_token'])
+	change_activity_bearer_in_db(activity_bearer, access_token['access_token'])
+	return access_token['access_token']
 
+def check_for_new_activities(activity_bearer):
+	# Search through users activity
+	# Find activity that is tagged correctly
+		# Verify it has not been posted to steemit already
+	print("Search For New Activities")
+	bearer_header = "Bearer " + activity_bearer
+	headers = {'Content-Type': 'application/json', 'Authorization': bearer_header}
+	parameters = {"after": 1558231822}
+	response = requests.get( api_url_base, headers=headers, params=parameters )
+	data = response.json()
+	print("athlete id: " + str(data[-1]['athlete']['id']))
+	print("activity name: " + data[-1]['name'])
+	print("activity type: " + data[-1]['type'])
+	print("distance: " + str(data[-1]['distance']))
+	print("moving time: " + str(data[-1]['moving_time']))
+	print("elapsed time: " + str(data[-1]['elapsed_time']))
+	print("activity id: " + str(data[-1]['id']))
 
-get_userdata_from_db()
+def get_userdata_from_db(user_database):
+	# Go through the users in the database
+	# Return user details
 
-response = requests.get(api_url_base)
-print(response.status_code)
-print(api_token)
+	with open(user_database) as csvfile:
+		reader = csv.DictReader(csvfile)
+		for row in reader:
+			name=row['name']
+			strava_id=row['strava_id']
+			user_key=row['strava_users_key']
+			activity_bearer=row['latest_bearer']
 
-#change_activity_bearer_in_db(1111111, 222222222222222, 333333333333333)
-#change_activity_bearer_in_db(1111111, 333333333333333, 222222222222222)
+			#print("Obtaining new activity bearer for user: " + name)
+			update_activity_bearer(user_key,activity_bearer)
+			check_for_new_activities(activity_bearer)
+
+get_userdata_from_db(userdb)
+
+sys.exit()
 
