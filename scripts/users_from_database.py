@@ -75,6 +75,17 @@ def check_for_new_activities(activity_bearer):
 	print("moving time: " + str(data[-1]['moving_time']))
 	print("elapsed time: " + str(data[-1]['elapsed_time']))
 	print("activity id: " + str(data[-1]['id']))
+	
+	# Extract extra details using activity id
+	activity_id = data[-1]['id']
+	activity_parameters = {"id": activity_id}
+	activity_url = "https://www.strava.com/api/v3/activities/" + str(activity_id)
+	print(activity_url)
+	activity_response = requests.get( activity_url, headers=headers, params=activity_parameters )
+	activity_data = activity_response.json()
+	print("activity date: " + str(activity_data['start_date_local']))
+	print("description: " + activity_data['description'])
+	print("photos: " + str(activity_data['photos']))
 
 def get_userdata_from_db(user_database):
 	# Go through the users in the database
