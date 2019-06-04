@@ -8,6 +8,7 @@ import stravalib
 # Extracting users from CSV for time being
 userdb="/Users/vincesesto/NewStrava/users1.csv"
 #userdb="scripts/users1.csv"
+postsdb="scripts/posts1.csv"
 client_id=sys.argv[1]
 api_token=sys.argv[2]
 api_url_base='https://www.strava.com/api/v3/athlete/activities'
@@ -27,6 +28,9 @@ api_url_base='https://www.strava.com/api/v3/athlete/activities'
 # Search through users activity
 	# Find activity that is tagged correctly
 	# Verify it has not been posted to steemit already 
+
+def add_activity_to_database():
+	print("Adding the activity to the database")
 
 def change_activity_bearer_in_db(old_activity_bearer, new_activity_bearer):
 	# Update this in the database
