@@ -8,7 +8,7 @@ import stravalib
 # Extracting users from CSV for time being
 userdb="/Users/vincesesto/NewStrava/users1.csv"
 #userdb="scripts/users1.csv"
-postsdb="scripts/posts1.csv"
+postdb="scripts/posts1.csv"
 client_id=sys.argv[1]
 api_token=sys.argv[2]
 api_url_base='https://www.strava.com/api/v3/athlete/activities'
@@ -18,6 +18,7 @@ api_url_base='https://www.strava.com/api/v3/athlete/activities'
 # 2. Try catch for all statements
 # 3. Logging
 # 4. Security
+# 5. Set time frame of one week for check_for_new_activities function
 
 
 # Go through the users in the database
@@ -31,6 +32,19 @@ api_url_base='https://www.strava.com/api/v3/athlete/activities'
 
 def add_activity_to_database():
 	print("Adding the activity to the database")
+
+def check_activity_db(activity_id):
+	# Check to see if the activity has been added to the database
+	with open(postdb, 'r') as readFile:
+		reader = csv.reader(readFile)
+		lines = list(reader)
+
+	found = False
+	for line in lines:
+		if activity_id in line:
+			found = True
+			break
+	return found
 
 def change_activity_bearer_in_db(old_activity_bearer, new_activity_bearer):
 	# Update this in the database
@@ -72,24 +86,30 @@ def check_for_new_activities(activity_bearer):
 	parameters = {"after": 1558231822}
 	response = requests.get( api_url_base, headers=headers, params=parameters )
 	data = response.json()
-	print("athlete id: " + str(data[-1]['athlete']['id']))
-	print("activity name: " + data[-1]['name'])
-	print("activity type: " + data[-1]['type'])
-	print("distance: " + str(data[-1]['distance']))
-	print("moving time: " + str(data[-1]['moving_time']))
-	print("elapsed time: " + str(data[-1]['elapsed_time']))
-	print("activity id: " + str(data[-1]['id']))
-	
-	# Extract extra details using activity id
 	activity_id = data[-1]['id']
-	activity_parameters = {"id": activity_id}
-	activity_url = "https://www.strava.com/api/v3/activities/" + str(activity_id)
-	print(activity_url)
-	activity_response = requests.get( activity_url, headers=headers, params=activity_parameters )
-	activity_data = activity_response.json()
-	print("activity date: " + str(activity_data['start_date_local']))
-	print("description: " + activity_data['description'])
-	print("photos: " + str(activity_data['photos']))
+	activity_logged = check_activity_db(str(activity_id))
+	print(activity_logged)
+
+	if activity_logged == False:
+		add_activity_to_database()
+
+		print("athlete id: " + str(data[-1]['athlete']['id']))
+		print("activity name: " + data[-1]['name'])
+		print("activity type: " + data[-1]['type'])
+		print("distance: " + str(data[-1]['distance']))
+		print("moving time: " + str(data[-1]['moving_time']))
+		print("elapsed time: " + str(data[-1]['elapsed_time']))
+		print("activity id: " + str(data[-1]['id']))
+	
+		# Extract extra details using activity id
+		activity_parameters = {"id": activity_id}
+		activity_url = "https://www.strava.com/api/v3/activities/" + str(activity_id)
+		print(activity_url)
+		activity_response = requests.get( activity_url, headers=headers, params=activity_parameters )
+		activity_data = activity_response.json()
+		print("activity date: " + str(activity_data['start_date_local']))
+		print("description: " + str(activity_data['description']))
+		print("photos: " + str(activity_data['photos']))
 
 def get_userdata_from_db(user_database):
 	# Go through the users in the database
