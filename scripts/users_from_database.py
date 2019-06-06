@@ -19,6 +19,7 @@ api_url_base='https://www.strava.com/api/v3/athlete/activities'
 # 3. Logging
 # 4. Security
 # 5. Set time frame of one week for check_for_new_activities function
+# 6. Download photos and add them to the database
 
 
 # Go through the users in the database
@@ -29,6 +30,7 @@ api_url_base='https://www.strava.com/api/v3/athlete/activities'
 # Search through users activity
 	# Find activity that is tagged correctly
 	# Verify it has not been posted to steemit already 
+	# Add new activities to the database
 
 def add_activity_to_database(post_db_list):
 	# Add following details to the database as function arguements
