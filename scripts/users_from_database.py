@@ -30,8 +30,14 @@ api_url_base='https://www.strava.com/api/v3/athlete/activities'
 	# Find activity that is tagged correctly
 	# Verify it has not been posted to steemit already 
 
-def add_activity_to_database():
+def add_activity_to_database(post_db_list):
+	# Add following details to the database as function arguements
+	# user,strava_activity_id,type,photo,description,date,title,distance,duration,sent_to_exhaust
 	print("Adding the activity to the database")
+	with open(postdb, 'a') as writeFile:
+		writer = csv.writer(writeFile)
+		writer.writerow(post_db_list)
+		writeFile.close()
 
 def check_activity_db(activity_id):
 	# Check to see if the activity has been added to the database
@@ -88,11 +94,10 @@ def check_for_new_activities(activity_bearer):
 	data = response.json()
 	activity_id = data[-1]['id']
 	activity_logged = check_activity_db(str(activity_id))
-	print(activity_logged)
 
-	if activity_logged == False:
-		add_activity_to_database()
-
+	if activity_logged == True:
+		print("No new activities to post")
+	else:
 		print("athlete id: " + str(data[-1]['athlete']['id']))
 		print("activity name: " + data[-1]['name'])
 		print("activity type: " + data[-1]['type'])
@@ -110,6 +115,21 @@ def check_for_new_activities(activity_bearer):
 		print("activity date: " + str(activity_data['start_date_local']))
 		print("description: " + str(activity_data['description']))
 		print("photos: " + str(activity_data['photos']))
+
+		# Create new list with details
+		# user,strava_activity_id,type,photo,description,date,title,distance,duration,sent_to_exhaust
+		fields_to_database = [str(data[-1]['athlete']['id']),
+					str(data[-1]['id']),
+					str(data[-1]['type']),
+					"none",
+					str(activity_data['description']),
+					str(activity_data['start_date_local']),
+					str(data[-1]['name']),
+					str(data[-1]['distance']),
+					str(data[-1]['moving_time']),
+					"n"]
+
+		add_activity_to_database(fields_to_database)
 
 def get_userdata_from_db(user_database):
 	# Go through the users in the database
