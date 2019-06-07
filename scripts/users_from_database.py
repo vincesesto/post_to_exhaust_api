@@ -4,6 +4,7 @@ import requests
 import json
 import sys
 import stravalib
+from datetime import datetime, timedelta
 
 # Extracting users from CSV for time being
 userdb="/Users/vincesesto/NewStrava/users1.csv"
@@ -18,8 +19,7 @@ api_url_base='https://www.strava.com/api/v3/athlete/activities'
 # 2. Try catch for all statements
 # 3. Logging
 # 4. Security
-# 5. Set time frame of one week for check_for_new_activities function
-# 6. Download photos and add them to the database
+# 5. Download photos and add them to the database
 
 
 # Go through the users in the database
@@ -91,7 +91,8 @@ def check_for_new_activities(activity_bearer):
 	print("Search For New Activities")
 	bearer_header = "Bearer " + activity_bearer
 	headers = {'Content-Type': 'application/json', 'Authorization': bearer_header}
-	parameters = {"after": 1558231822}
+	t = datetime.now() - timedelta(days=5)
+	parameters = {"after": int(t.strftime("%s"))}
 	response = requests.get( api_url_base, headers=headers, params=parameters )
 	data = response.json()
 	activity_id = data[-1]['id']
